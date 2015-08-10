@@ -1,0 +1,3 @@
+Flask==0.10.1
+Flask-Dance[sqla]==0.6.0
+Flask-SSLify
