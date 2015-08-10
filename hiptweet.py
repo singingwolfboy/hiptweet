@@ -1,7 +1,9 @@
 from flask import Flask, jsonify, url_for
+from werkzeug.contrib.fixers import ProxyFix
 from flask_sslify import SSLify
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app)
 if not app.debug:
     SSLify(app)
 
