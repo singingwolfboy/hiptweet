@@ -1,11 +1,24 @@
 from flask import Flask, jsonify, url_for
 from werkzeug.contrib.fixers import ProxyFix
 from flask_sslify import SSLify
+from flask_dance.consumer import OAuth2ConsumerBlueprint
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 if not app.debug:
     SSLify(app)
+
+app.config["HIPCHAT_OAUTH_CLIENT_ID"] = os.environ.get("HIPCHAT_OAUTH_CLIENT_ID")
+app.config["HIPCHAT_OAUTH_CLIENT_SECRET"] = os.environ.get("HIPCHAT_OAUTH_CLIENT_SECRET")
+
+hipchat_bp = OAuth2ConsumerBlueprint("hipchat", __name__,
+    authorization_url="https://www.hipchat.com/users/authorize",
+    token_url="https://api.hipchat.com/v2/oauth/token",
+    base_url="https://api.hipchat.com/v2",
+)
+hipchat_bp.from_config["client_id"] = "HIPCHAT_OAUTH_CLIENT_ID"
+hipchat_bp.from_config["client_secret"] = "HIPCHAT_OAUTH_CLIENT_SECRET"
+app.register_blueprint(hipchat_bp, url_prefix="/login")
 
 @app.route("/")
 def hello():

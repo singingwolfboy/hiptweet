@@ -1,0 +1,4 @@
+*.pyc
+hiptweet.db
+docs/_build
+.env
