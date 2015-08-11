@@ -2,15 +2,22 @@ import os
 from flask import Flask, jsonify, url_for
 from werkzeug.contrib.fixers import ProxyFix
 from flask_sslify import SSLify
+from raven.contrib.flask import Sentry
 from flask_dance.consumer import OAuth2ConsumerBlueprint
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
+
+envvars = (
+    "HIPCHAT_OAUTH_CLIENT_ID", "HIPCHAT_OAUTH_CLIENT_SECRET",
+    "SENTRY_DSN",
+)
+for envvar in envvars:
+    app.config[envvar] = os.environ.get(envvar)
+
+sentry = Sentry(app)
 if not app.debug:
     SSLify(app)
-
-app.config["HIPCHAT_OAUTH_CLIENT_ID"] = os.environ.get("HIPCHAT_OAUTH_CLIENT_ID")
-app.config["HIPCHAT_OAUTH_CLIENT_SECRET"] = os.environ.get("HIPCHAT_OAUTH_CLIENT_SECRET")
 
 hipchat_bp = OAuth2ConsumerBlueprint("hipchat", __name__,
     authorization_url="https://www.hipchat.com/users/authorize",
