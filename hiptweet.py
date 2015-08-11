@@ -7,6 +7,7 @@ from flask_dance.consumer import OAuth2ConsumerBlueprint
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersekrit")
 
 envvars = (
     "HIPCHAT_OAUTH_CLIENT_ID", "HIPCHAT_OAUTH_CLIENT_SECRET",
