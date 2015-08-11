@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, url_for
+from flask import Flask, jsonify, url_for, render_template, request
 from werkzeug.contrib.fixers import ProxyFix
 from flask_sslify import SSLify
 from raven.contrib.flask import Sentry
@@ -20,11 +20,12 @@ sentry = Sentry(app)
 if not app.debug:
     SSLify(app)
 
+HIPCHAT_SCOPES = ["send_notification"]
 hipchat_bp = OAuth2ConsumerBlueprint("hipchat", __name__,
     authorization_url="https://www.hipchat.com/users/authorize",
     token_url="https://api.hipchat.com/v2/oauth/token",
     base_url="https://api.hipchat.com/v2",
-    scope=["send_notification"],
+    scope=HIPCHAT_SCOPES,
 )
 hipchat_bp.from_config["client_id"] = "HIPCHAT_OAUTH_CLIENT_ID"
 hipchat_bp.from_config["client_secret"] = "HIPCHAT_OAUTH_CLIENT_SECRET"
@@ -46,12 +47,19 @@ def capabilities():
         },
         "capabilities": {
             "hipchatApiConsumer": {
-                "scopes": [
-                    "send_notification"
-                ]
+                "scopes": HIPCHAT_SCOPES,
             }
+        },
+        "configurable": {
+            "url": url_for("configure", _external=True),
         }
     })
+
+@app.route("/configure")
+def configure():
+    jwt = request.args.get("signed_request")
+    return render_template("configure.html", jwt=jwt)
+
 
 if __name__ == "__main__":
     app.run()
