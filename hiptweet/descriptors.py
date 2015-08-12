@@ -1,5 +1,7 @@
-from flask import Blueprint, jsonify, url_for
-from hiptweet import HIPCHAT_SCOPES
+import json
+from flask import Blueprint, jsonify, url_for, request
+from hiptweet import HIPCHAT_SCOPES, db
+from hiptweet.models import HipChatInstallInfo
 
 descriptors = Blueprint('descriptors', __name__)
 
@@ -17,9 +19,31 @@ def capabilities():
         "capabilities": {
             "hipchatApiConsumer": {
                 "scopes": HIPCHAT_SCOPES,
+                "fromName": "HipTweet",
             }
+        },
+        "installable": {
+            "allowRoom": True,
+            "allowGlobal": True,
+            "callbackUrl": url_for("descriptors.installed", _external=True)
         },
         "configurable": {
             "url": url_for("ui.configure", _external=True),
         }
     })
+
+
+@descriptors.route("/installed", methods=["POST"])
+def installed():
+    try:
+        fields = json.loads(request.data)
+    except ValueError:
+        return "invalid JSON", 400
+    install_info = HipChatInstallInfo()
+    install_info.oauth_id = fields.get("oauthId")
+    install_info.oauth_secret = fields.get("oauthSecret")
+    install_info.capabilities_url = fields.get("capabilitiesUrl")
+    install_info.room_id = fields.get("roomId")
+    db.session.add(install_info)
+    db.session.commit()
+    return "success"
