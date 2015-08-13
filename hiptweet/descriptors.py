@@ -60,7 +60,7 @@ def handle_invalid_usage(error):
     return response
 
 
-def fetch_oauth_token(capabilities_url):
+def fetch_oauth_token(capabilities_url, oauth_id, oauth_secret):
     capabilities_resp = requests.get(capabilities_url)
     if not capabilities_resp.ok:
         raise InvalidUsage("invalid capabilities URL")
@@ -122,7 +122,7 @@ def installed():
     room_id = fields.get("roomId")  # optional
 
     # validate the info we received
-    token_data = fetch_oauth_token(capabilities_url)
+    token_data = fetch_oauth_token(capabilities_url, oauth_id, oauth_secret)
 
     # do we already have this HipChat group in the database?
     group = HipChatGroup.query.get(group_id)
@@ -160,7 +160,11 @@ def uninstalled(oauth_id):
     # Verify the uninstall request. If this request really comes from HipChat,
     # we should be unable to request a new OAuth token.
     try:
-        token_data = fetch_oauth_token(install_info.capabilities_url)
+        token_data = fetch_oauth_token(
+            install_info.capabilities_url,
+            install_info.oauth_id,
+            install_info.oauth_secret,
+        )
     except InvalidUsage:
         # yep, we're unable to request a new token.
         install_info.delete()
