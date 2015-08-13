@@ -167,7 +167,7 @@ def uninstalled(oauth_id):
         )
     except InvalidUsage:
         # yep, we're unable to request a new token.
-        install_info.delete()
+        db.session.delete(install_info)
         db.session.commit()
         return "goodbye"
     else:
