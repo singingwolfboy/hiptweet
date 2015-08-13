@@ -77,7 +77,7 @@ def installed():
         return "tokenUrl not present in remote capabilities", 400
     payload = {
         "grant_type": "client_credentials",
-        "scope": HIPCHAT_SCOPES.join(" "),
+        "scope": " ".join(HIPCHAT_SCOPES),
     }
     token_resp = requests.post(
         token_url,
