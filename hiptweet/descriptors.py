@@ -36,7 +36,7 @@ def capabilities():
 @descriptors.route("/installed", methods=["POST"])
 def installed():
     try:
-        fields = json.loads(request.data)
+        fields = json.loads(request.data.decode('utf-8'))
     except ValueError:
         return "invalid JSON", 400
     install_info = HipChatInstallInfo()
