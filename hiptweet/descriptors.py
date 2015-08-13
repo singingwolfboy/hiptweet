@@ -128,4 +128,5 @@ def installed():
 def uninstalled(oauth_id):
     # delete the install info for this OAuth ID
     num_deleted = HipChatInstallInfo.query.filter_by(oauth_id=oauth_id).delete()
+    db.session.commit()
     return "goodbye"
