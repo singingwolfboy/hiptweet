@@ -115,7 +115,7 @@ def installed():
     install_info.oauth_secret = oauth_secret
 
     # save the OAuth token we got
-    token = HipChatGroupOAuth(group_id=group_id, token=token_data)
+    token = HipChatGroupOAuth(install_info=install_info, token=token_data)
 
     # save
     db.session.add_all([group, install_info, token])
