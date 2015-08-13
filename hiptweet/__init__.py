@@ -30,9 +30,6 @@ def create_app(config=None):
     if not app.debug:
         SSLify(app)
 
-    from .oauth import hipchat_bp
-    app.register_blueprint(hipchat_bp, url_prefix="/login")
-
     from .descriptors import descriptors as descriptors_blueprint
     app.register_blueprint(descriptors_blueprint)
 
