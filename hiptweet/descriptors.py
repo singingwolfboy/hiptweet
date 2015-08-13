@@ -20,16 +20,16 @@ def capabilities():
             "hipchatApiConsumer": {
                 "scopes": HIPCHAT_SCOPES,
                 "fromName": "HipTweet",
-            }
+            },
+            "installable": {
+                "allowRoom": True,
+                "allowGlobal": True,
+                "callbackUrl": url_for("descriptors.installed", _external=True)
+            },
+            "configurable": {
+                "url": url_for("ui.configure", _external=True),
+            },
         },
-        "installable": {
-            "allowRoom": True,
-            "allowGlobal": True,
-            "callbackUrl": url_for("descriptors.installed", _external=True)
-        },
-        "configurable": {
-            "url": url_for("ui.configure", _external=True),
-        }
     })
 
 
