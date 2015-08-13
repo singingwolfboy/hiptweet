@@ -34,6 +34,73 @@ def capabilities():
     })
 
 
+class InvalidUsage(Exception):
+    """
+    http://flask.pocoo.org/docs/0.10/patterns/apierrors/
+    """
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+
+@descriptors.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
+def fetch_oauth_token(capabilities_url):
+    capabilities_resp = requests.get(capabilities_url)
+    if not capabilities_resp.ok:
+        raise InvalidUsage("invalid capabilities URL")
+    try:
+        remote_capabilities = capabilities_resp.json()
+    except ValueError:
+        raise InvalidUsage("invalid JSON from capabilities URL")
+    remote_app_name = remote_capabilities.get("name")
+    if remote_app_name != "HipChat":
+        msg = "expected remote app to be HipChat, received {name!r}".format(name=remote_app_name)
+        raise InvalidUsage(msg)
+
+    # fetch an OAuth token
+    token_url = (
+        remote_capabilities.get("capabilities", {})
+                           .get("oauth2Provider", {})
+                           .get("tokenUrl", "")
+    )
+    if not token_url:
+        raise InvalidUsage("tokenUrl not present in remote capabilities")
+    payload = {
+        "grant_type": "client_credentials",
+        "scope": " ".join(HIPCHAT_SCOPES),
+    }
+    token_resp = requests.post(
+        token_url,
+        data=payload,
+        auth=(oauth_id, oauth_secret),
+    )
+    if not token_resp.ok:
+        raise InvalidUsage("could not obtain OAuth token")
+    try:
+        token_data = token_resp.json()
+    except ValueError:
+        raise InvalidUsage("invalid JSON from token URL")
+    if "access_token" not in token_data:
+        raise InvalidUsage("access_token not in token URL response")
+    return token_data
+
+
 @descriptors.route("/installed", methods=["POST"])
 def installed():
     try:
@@ -55,45 +122,7 @@ def installed():
     room_id = fields.get("roomId")  # optional
 
     # validate the info we received
-    capabilities_resp = requests.get(capabilities_url)
-    if not capabilities_resp.ok:
-        return "invalid capabilities URL", 400
-    try:
-        remote_capabilities = capabilities_resp.json()
-    except ValueError:
-        return "invalid JSON from capabilities URL", 400
-    remote_app_name = remote_capabilities.get("name")
-    if remote_app_name != "HipChat":
-        msg = "expected remote app to be HipChat, received {name!r}".format(name=remote_app_name)
-        return msg, 400
-
-    # fetch an OAuth token
-    token_url = (
-        remote_capabilities.get("capabilities", {})
-                           .get("oauth2Provider", {})
-                           .get("tokenUrl", "")
-    )
-    if not token_url:
-        return "tokenUrl not present in remote capabilities", 400
-    payload = {
-        "grant_type": "client_credentials",
-        "scope": " ".join(HIPCHAT_SCOPES),
-    }
-    token_resp = requests.post(
-        token_url,
-        data=payload,
-        auth=(oauth_id, oauth_secret),
-    )
-    if not token_resp.ok:
-        return "could not obtain OAuth token", 400
-    try:
-        token_data = token_resp.json()
-    except ValueError:
-        return "invalid JSON from token URL", 400
-    if "access_token" not in token_data:
-        return "access_token not in token URL response", 400
-
-    # OK, we're done validating things! Now time to save things.
+    token_data = fetch_oauth_token(capabilities_url)
 
     # do we already have this HipChat group in the database?
     group = HipChatGroup.query.get(group_id)
@@ -111,6 +140,7 @@ def installed():
     if not install_info:
         install_info = HipChatInstallInfo(group_id=group_id, room_id=room_id)
     # update with OAuth credentials
+    install_info.capabilities_url = capabilities_url
     install_info.oauth_id = oauth_id
     install_info.oauth_secret = oauth_secret
 
@@ -126,7 +156,22 @@ def installed():
 
 @descriptors.route("/installed/<oauth_id>", methods=["DELETE"])
 def uninstalled(oauth_id):
-    # delete the install info for this OAuth ID
-    num_deleted = HipChatInstallInfo.query.filter_by(oauth_id=oauth_id).delete()
-    db.session.commit()
-    return "goodbye"
+    install_info = HipChatInstallInfo.query.filter_by(oauth_id=oauth_id).get_or_404()
+    # Verify the uninstall request. If this request really comes from HipChat,
+    # we should be unable to request a new OAuth token.
+    try:
+        token_data = fetch_oauth_token(install_info.capabilities_url)
+    except InvalidUsage:
+        # yep, we're unable to request a new token.
+        install_info.delete()
+        db.session.commit()
+        return "goodbye"
+    else:
+        # actually, we can still get new tokens, so this is an invalid request.
+        # might as well save the token we just got, though.
+        (
+            HipChatGroupOAuth.query.filter_by(install_info=install_info)
+            .update({"token": token_data}, synchronize_session=False)
+        )
+        db.session.commit()
+        return "invalid request", 403

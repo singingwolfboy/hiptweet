@@ -22,6 +22,7 @@ class HipChatInstallInfo(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
     group = db.relationship(HipChatGroup)
     room_id = db.Column(db.String(256))
+    capabilities_url = db.Column(db.String(512))
     oauth_id = db.Column(db.String(256), nullable=False)
     oauth_secret = db.Column(db.String(256), nullable=False)
 
