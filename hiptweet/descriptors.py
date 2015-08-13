@@ -156,7 +156,7 @@ def installed():
 
 @descriptors.route("/installed/<oauth_id>", methods=["DELETE"])
 def uninstalled(oauth_id):
-    install_info = HipChatInstallInfo.query.filter_by(oauth_id=oauth_id).get_or_404()
+    install_info = HipChatInstallInfo.query.filter_by(oauth_id=oauth_id).first_or_404()
     # Verify the uninstall request. If this request really comes from HipChat,
     # we should be unable to request a new OAuth token.
     try:
