@@ -17,6 +17,7 @@ class HipChatGroup(db.Model):
 
 
 class HipChatUser(db.Model, UserMixin):
+    __tablename__ = "hipchat_user"
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
