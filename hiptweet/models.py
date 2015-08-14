@@ -1,18 +1,36 @@
 from datetime import datetime
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy_utils import JSONType
-from hiptweet import db
+from flask_login import UserMixin
+from hiptweet import db, login_manager
 
 
 class HipChatGroup(db.Model):
     __tablename__ = "hipchat_group"
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    # the columns below require the "view_group" scope to determine
+    # the columns below require the "view_group" scope to look up
     name = db.Column(db.String(256))
     avatar_url = db.Column(db.String(256))  # URL to group's avatar. 125px on the longest side.
     domain = db.Column(db.String(256))  # the Google Apps domain, if applicable
     subdomain = db.Column(db.String(256))  # the name used as the prefix to the HipChat domain
+
+
+class HipChatUser(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
+    group = db.relationship(HipChatGroup)
+    # the columns below require the "view_group" scope to look up
+    name = db.Column(db.String(256))
+    title = db.Column(db.String(256))
+    email = db.Column(db.String(256))
+    photo_url = db.Column(db.String(256))  # URL to user's photo. 125px on the longest side.
+    is_group_admin = db.Column(db.Boolean)
+    is_guest = db.Column(db.Boolean)  # Whether or not this user is a guest or registered user.
+    mention_name = db.Column(db.String(256))
+    timezone = db.Column(db.String(64))
+    xmpp_jid = db.Column(db.String(256))  # XMPP/Jabber ID of the user.
 
 
 class HipChatInstallInfo(db.Model):
@@ -23,7 +41,7 @@ class HipChatInstallInfo(db.Model):
     group = db.relationship(HipChatGroup)
     room_id = db.Column(db.String(256))
     capabilities_url = db.Column(db.String(512))
-    oauth_id = db.Column(db.String(256), nullable=False)
+    oauth_id = db.Column(db.String(256), nullable=False, index=True)
     oauth_secret = db.Column(db.String(256), nullable=False)
 
     __table_args__ = (
@@ -52,3 +70,8 @@ class HipChatGroupOAuth(db.Model):
             .filter(HipChatInstallInfo.room_id == room_id)
             .first()
         )
+
+
+@login_manager.user_loader
+def load_user(userid):
+    return HipChatUser.get(userid)

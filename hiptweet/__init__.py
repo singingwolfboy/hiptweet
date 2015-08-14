@@ -1,16 +1,18 @@
 import os
 from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
-from flask_sqlalchemy import SQLAlchemy
-from flask_sslify import SSLify
 from raven.contrib.flask import Sentry
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_sslify import SSLify
 
 
 HIPCHAT_SCOPES = ["send_notification"]
 
 
-db = SQLAlchemy()
 sentry = Sentry()
+db = SQLAlchemy()
+login_manager = LoginManager()
 
 
 def expand_config(name):
@@ -27,6 +29,7 @@ def create_app(config=None):
 
     sentry.init_app(app)
     db.init_app(app)
+    login_manager.init_app(app)
     if not app.debug:
         SSLify(app)
 
