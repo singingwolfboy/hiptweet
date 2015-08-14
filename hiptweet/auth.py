@@ -21,7 +21,7 @@ def load_user_from_request(request):
                 pass
             else:
                 user_id = payload2["prn"]
-                user = HipChatUser.get(user_id)
+                user = HipChatUser.query.get(user_id)
                 if not user:
                     user = HipChatUser(id=user_id, group=install_info.group)
                     db.session.add(user)
