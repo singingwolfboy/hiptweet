@@ -5,6 +5,6 @@
     <link rel="stylesheet" href="https://www.hipchat.com/atlassian-connect/all{% if config.DEBUG %}-debug{% endif %}.css">
   </head>
   <body>
-    You are user #{{ current_user.id }} in group #{{ current_user.group.id }}
+    You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}
   </body>
 </html>

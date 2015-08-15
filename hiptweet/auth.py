@@ -20,10 +20,15 @@ def load_user_from_request(request):
             except itsdangerous.BadSignature:
                 pass
             else:
-                user_id = payload2["prn"]
-                user = HipChatUser.query.get(user_id)
+                hc_user_id = payload2["prn"]
+                hc_user = HipChatUser.query.get(hc_user_id)
+                if not hc_user:
+                    hc_user = HipChatUser(id=hc_user_id, group=install_info.group)
+                    db.session.add(hc_user)
+                    db.session.save()
+                user = hc_user.user
                 if not user:
-                    user = HipChatUser(id=user_id, group=install_info.group)
+                    user = User(hipchat_user=hc_user)
                     db.session.add(user)
                     db.session.save()
                 return user

@@ -1,10 +1,24 @@
 #!/usr/bin/env python
 from flask_script import Manager, prompt_bool
-from hiptweet import create_app, db
+from flask import current_app
 import sqlalchemy as sa
+from hiptweet import create_app, db
+from hiptweet.models import (
+    User, HipChatUser, HipChatGroup, HipChatInstallInfo, HipChatGroupOAuth
+)
 
 manager = Manager(create_app)
 manager.add_option('-c', '--config', dest='config', required=False)
+
+
+@manager.shell
+def make_shell_context():
+    return dict(
+        db=db, sa=sa, app=current_app,
+        User=User, HipChatUser=HipChatUser, HipChatGroup=HipChatGroup,
+        HipChatInstallInfo=HipChatInstallInfo,
+        HipChatGroupOAuth=HipChatGroupOAuth,
+    )
 
 
 dbmanager = Manager(usage="Perform database operations")

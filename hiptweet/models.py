@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy_utils import JSONType
 from flask_login import UserMixin
@@ -16,12 +17,12 @@ class HipChatGroup(db.Model):
     subdomain = db.Column(db.String(256))  # the name used as the prefix to the HipChat domain
 
 
-class HipChatUser(db.Model, UserMixin):
+class HipChatUser(db.Model):
     __tablename__ = "hipchat_user"
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
-    group = db.relationship(HipChatGroup)
+    group = db.relationship(HipChatGroup, backref="users")
     # the columns below require the "view_group" scope to look up
     name = db.Column(db.String(256))
     title = db.Column(db.String(256))
@@ -73,6 +74,17 @@ class HipChatGroupOAuth(db.Model):
         )
 
 
+class User(db.Model, UserMixin):
+    __tablename__ = "user"
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    hipchat_user_id = db.Column(
+        db.Integer, db.ForeignKey(HipChatUser.id), nullable=False, index=True,
+    )
+    hipchat_user = db.relationship(HipChatUser, backref="user", uselist=False)
+    hipchat_group = association_proxy("hipchat_user", "group")
+
+
 @login_manager.user_loader
 def load_user(userid):
-    return HipChatUser.get(userid)
+    return User.get(userid)
