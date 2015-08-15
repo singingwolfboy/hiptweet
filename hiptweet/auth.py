@@ -1,6 +1,7 @@
 import json
 import itsdangerous
 import requests
+from flask_login import login_user
 from hiptweet import HIPCHAT_SCOPES, db, login_manager
 from hiptweet.models import User, HipChatUser, HipChatInstallInfo
 
@@ -31,6 +32,11 @@ def load_user_from_request(request):
                     user = User(hipchat_user=hc_user)
                     db.session.add(user)
                     db.session.commit()
+
+                # set the login cookie, so that you don't need
+                # the signed_request header anymore for this session
+                login_user(user)
+
                 return user
     return None
 
