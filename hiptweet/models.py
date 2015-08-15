@@ -91,7 +91,7 @@ class User(db.Model, UserMixin):
 
 @login_manager.user_loader
 def load_user(userid):
-    return User.get(userid)
+    return User.query.get(userid)
 
 
 class OAuth(db.Model, OAuthConsumerMixin):
