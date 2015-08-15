@@ -25,12 +25,12 @@ def load_user_from_request(request):
                 if not hc_user:
                     hc_user = HipChatUser(id=hc_user_id, group=install_info.group)
                     db.session.add(hc_user)
-                    db.session.save()
+                    db.session.commit()
                 user = hc_user.user
                 if not user:
                     user = User(hipchat_user=hc_user)
                     db.session.add(user)
-                    db.session.save()
+                    db.session.commit()
                 return user
     return None
 
