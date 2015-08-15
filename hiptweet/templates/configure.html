@@ -8,7 +8,7 @@
     <p>You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}</p>
     {% if not twitter_screen_names %}
     <p>You have not connected any Twitter accounts.</p>
-    {% elif len(twitter_screen_names) == 1 %}
+    {% elif twitter_screen_names|length == 1 %}
     <p>You have connected the @{{ twitter_screen_names[0] }} Twitter account.</p>
     {% else %}
     <p>You have connected the following Twitter accounts:
