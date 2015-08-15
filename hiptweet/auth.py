@@ -2,7 +2,7 @@ import json
 import itsdangerous
 import requests
 from hiptweet import HIPCHAT_SCOPES, db, login_manager
-from hiptweet.models import HipChatUser, HipChatInstallInfo
+from hiptweet.models import User, HipChatUser, HipChatInstallInfo
 
 
 @login_manager.request_loader
