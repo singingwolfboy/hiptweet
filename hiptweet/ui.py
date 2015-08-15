@@ -11,4 +11,12 @@ def hello():
 @ui.route("/configure")
 @login_required
 def configure():
-    return render_template("configure.html")
+    twitter_screen_names = [
+        oauth.token.get("screen_name")
+        for oauth in current_user.oauth_models
+        if oauth.provider == "twitter" and oauth.token.get("screen_name")
+    ]
+    return render_template(
+        "configure.html",
+        twitter_screen_names=twitter_screen_names,
+    )

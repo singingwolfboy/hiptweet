@@ -5,6 +5,21 @@
     <link rel="stylesheet" href="https://www.hipchat.com/atlassian-connect/all{% if config.DEBUG %}-debug{% endif %}.css">
   </head>
   <body>
-    You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}
+    <p>You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}</p>
+    {% if not twitter_screen_names %}
+    <p>You have not connected any Twitter accounts.</p>
+    {% else if len(twitter_screen_names) == 1 %}
+    <p>You have connected the @{{ twitter_screen_names[0] }} Twitter account.</p>
+    {% else %}
+    <p>You have connected the following Twitter accounts:
+    <ul>
+        {% for screen_name in twitter_screen_names %}
+        <li>@{{ screen_name }}</li>
+        {% endfor %}
+    </ul></p>
+    {% endif %}
+    <br>
+    <a href="{{ url_for("twitter.login") }}">Login with Twitter</a>
   </body>
+    }
 </html>
