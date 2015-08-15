@@ -33,6 +33,9 @@ def create_app(config=None):
     if not app.debug:
         SSLify(app)
 
+    from .oauth import twitter_bp
+    app.register_blueprint(twitter_bp, url_prefix="/login")
+
     from .descriptors import descriptors as descriptors_blueprint
     app.register_blueprint(descriptors_blueprint)
 

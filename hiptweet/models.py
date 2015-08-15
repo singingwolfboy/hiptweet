@@ -1,8 +1,10 @@
 from datetime import datetime
+from sqlalchemy.orm import backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy_utils import JSONType
 from flask_login import UserMixin
+from flask_dance.consumer.backend.sqla import OAuthConsumerMixin
 from hiptweet import db, login_manager
 
 
@@ -81,10 +83,17 @@ class User(db.Model, UserMixin):
     hipchat_user_id = db.Column(
         db.Integer, db.ForeignKey(HipChatUser.id), nullable=False, index=True,
     )
-    hipchat_user = db.relationship(HipChatUser, backref="user", uselist=False)
+    hipchat_user = db.relationship(
+        HipChatUser, backref=backref("user", uselist=False),
+    )
     hipchat_group = association_proxy("hipchat_user", "group")
 
 
 @login_manager.user_loader
 def load_user(userid):
     return User.get(userid)
+
+
+class OAuth(db.Model, OAuthConsumerMixin):
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user = db.relationship(User, backref="oauth_models")

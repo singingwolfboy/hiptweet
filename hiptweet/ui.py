@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, url_for, request, render_template
-from flask_login import login_required
+from flask_login import login_required, current_user
 from .auth import load_user_from_request
 
 ui = Blueprint('ui', __name__)

@@ -1,11 +1,16 @@
 #!/usr/bin/env python
+import logging
 from flask_script import Manager, prompt_bool
 from flask import current_app
 import sqlalchemy as sa
-from hiptweet import create_app, db
+from hiptweet import create_app, db, sentry
 from hiptweet.models import (
-    User, HipChatUser, HipChatGroup, HipChatInstallInfo, HipChatGroupOAuth
+    User, OAuth, HipChatUser, HipChatGroup, HipChatInstallInfo,
+    HipChatGroupOAuth
 )
+
+
+logging.getLogger("raven.base.Client").setLevel(logging.WARNING)  # disable error message
 
 manager = Manager(create_app)
 manager.add_option('-c', '--config', dest='config', required=False)
@@ -15,7 +20,8 @@ manager.add_option('-c', '--config', dest='config', required=False)
 def make_shell_context():
     return dict(
         db=db, sa=sa, app=current_app,
-        User=User, HipChatUser=HipChatUser, HipChatGroup=HipChatGroup,
+        User=User, OAuth=OAuth,
+        HipChatUser=HipChatUser, HipChatGroup=HipChatGroup,
         HipChatInstallInfo=HipChatInstallInfo,
         HipChatGroupOAuth=HipChatGroupOAuth,
     )
