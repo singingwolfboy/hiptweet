@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, url_for, request, render_template, abort
 from flask_login import login_required, current_user
-from .auth import load_user_from_request
+from hiptweet import db
 
 ui = Blueprint('ui', __name__)
 
@@ -22,7 +22,7 @@ def configure():
     )
 
 
-@ui.route("/twitter/<screen_name>", methods=["DELETE"]))
+@ui.route("/twitter/<screen_name>", methods=["DELETE"])
 @login_required
 def delete_twitter_oauth_token(screen_name):
     oauth_models = [
