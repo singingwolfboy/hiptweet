@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
+from hiptweet.middleware import HTTPMethodOverrideMiddleware
 from raven.contrib.flask import Sentry
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -24,6 +25,7 @@ def expand_config(name):
 def create_app(config=None):
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app)
+    app.wsgi_app = HTTPMethodOverrideMiddleware(app.wsgi_app, querystring_param="_method")
     config = config or os.environ.get("HIPTWEET_CONFIG") or "default"
     app.config.from_object(expand_config(config))
 

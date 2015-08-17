@@ -5,18 +5,40 @@
     <link rel="stylesheet" href="https://www.hipchat.com/atlassian-connect/all{% if config.DEBUG %}-debug{% endif %}.css">
   </head>
   <body>
-    <p>You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}</p>
-    {% if not twitter_screen_names %}
-    <p>You have not connected any Twitter accounts.</p>
-    {% elif twitter_screen_names|length == 1 %}
-    <p>You have connected the @{{ twitter_screen_names[0] }} Twitter account.</p>
-    {% else %}
-    <p>You have connected the following Twitter accounts:
-    <ul>
-        {% for screen_name in twitter_screen_names %}
-        <li>@{{ screen_name }}</li>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flash">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
         {% endfor %}
-    </ul></p>
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <p>You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}</p>
+
+    {% if not twitter_screen_names %}
+      <p>You have not connected any Twitter accounts.</p>
+    {% elif twitter_screen_names|length == 1 %}
+      {% set screen_name = twitter_screen_names[0] %}
+      <p>You have connected the @{{ screen_names }} Twitter account.
+        <form method="POST"
+              action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name, _method="DELETE") }}">
+          <input type="submit" value="Disconnect">
+        </form>
+      </p>
+    {% else %}
+      <p>You have connected the following Twitter accounts:
+      <ul>
+        {% for screen_name in twitter_screen_names %}
+          <li>@{{ screen_name }}
+          <form method="POST"
+              action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name, _method="DELETE") }}">
+            <input type="submit" value="Disconnect">
+          </form>
+          </li>
+        {% endfor %}
+      </ul></p>
     {% endif %}
     <br>
     <a href="{{ url_for("twitter.login") }}">Login with Twitter</a>
