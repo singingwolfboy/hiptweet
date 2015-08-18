@@ -44,4 +44,7 @@ def create_app(config=None):
     from .ui import ui as ui_blueprint
     app.register_blueprint(ui_blueprint)
 
+    from .webhook import webhook as webhook_blueprint
+    app.register_blueprint(webhook_blueprint, url_prefix="/webhook")
+
     return app

@@ -30,6 +30,14 @@ def capabilities():
             "configurable": {
                 "url": url_for("ui.configure", _external=True),
             },
+            "webhook": [
+                {
+                    "event": "room_message",
+                    "url": url_for("webhook.room_message", _external=True),
+                    "pattern": "^/tweet",
+                    "authentication": "jwt",
+                }
+            ]
         },
     })
 
