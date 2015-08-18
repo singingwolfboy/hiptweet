@@ -8,7 +8,7 @@ from hiptweet.models import User, HipChatUser, HipChatInstallInfo
 
 @login_manager.request_loader
 def load_user_from_request(request):
-    jwt = request.args.get("signed_request")
+    jwt = request.values.get("signed_request")
     if jwt:
         headers_b64, payload_b64, signature = jwt.split(".")
         payload = json.loads(itsdangerous.base64_decode(payload_b64).decode('utf-8'))
