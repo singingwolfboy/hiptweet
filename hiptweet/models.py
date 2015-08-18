@@ -12,6 +12,8 @@ class HipChatGroup(db.Model):
     __tablename__ = "hipchat_group"
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    twitter_oauth_id = db.Column(db.Integer, db.ForeignKey("oauth.id"))
+    twitter_oauth = db.relationship("OAuth")
     # the columns below require the "view_group" scope to look up
     name = db.Column(db.String(256))
     avatar_url = db.Column(db.String(256))  # URL to group's avatar. 125px on the longest side.
@@ -37,13 +39,34 @@ class HipChatUser(db.Model):
     xmpp_jid = db.Column(db.String(256))  # XMPP/Jabber ID of the user.
 
 
+class HipChatRoom(db.Model):
+    __tablename__ = "hipchat_room"
+    id = db.Column(db.Integer, primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
+    group = db.relationship(HipChatGroup, backref="rooms")
+    twitter_oauth_id = db.Column(db.Integer, db.ForeignKey("oauth.id"))
+    twitter_oauth = db.relationship("OAuth")
+    # the columns below require the "view_group" or "view_room" scope to look up
+    name = db.Column(db.String(256))
+    topic = db.Column(db.String(256))
+    privacy = db.Column(db.String(64))  # Privacy setting: "public" or "private"
+    avatar_url = db.Column(db.String(256))  # URL to room's avatar. 125px on the longest side.
+    is_archived = db.Column(db.Boolean)
+    is_guest_accessible = db.Column(db.Boolean)  # Whether or not guests can access this room.
+    owner_id = db.Column(db.Integer, db.ForeignKey(HipChatUser.id))
+    owner = db.relationship(HipChatUser, backref="owned_rooms")
+    xmpp_jid = db.Column(db.String(256))  # XMPP/Jabber ID of the room.
+
+
 class HipChatInstallInfo(db.Model):
     __tablename__ = "hipchat_install_info"
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
     group = db.relationship(HipChatGroup)
-    room_id = db.Column(db.String(256))
+    room_id = db.Column(db.Integer, db.ForeignKey(HipChatRoom.id), nullable=True)
+    room = db.relationship(HipChatRoom)
     capabilities_url = db.Column(db.String(512))
     oauth_id = db.Column(db.String(256), nullable=False, index=True)
     oauth_secret = db.Column(db.String(256), nullable=False)
@@ -95,5 +118,7 @@ def load_user(userid):
 
 
 class OAuth(db.Model, OAuthConsumerMixin):
+    __tablename__ = "oauth"
     user_id = db.Column(db.Integer, db.ForeignKey(User.id))
     user = db.relationship(User, backref="oauth_models")
+

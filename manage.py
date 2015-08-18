@@ -5,7 +5,7 @@ from flask import current_app
 import sqlalchemy as sa
 from hiptweet import create_app, db, sentry
 from hiptweet.models import (
-    User, OAuth, HipChatUser, HipChatGroup, HipChatInstallInfo,
+    User, OAuth, HipChatUser, HipChatGroup, HipChatRoom, HipChatInstallInfo,
     HipChatGroupOAuth
 )
 
@@ -21,7 +21,7 @@ def make_shell_context():
     return dict(
         db=db, sa=sa, app=current_app,
         User=User, OAuth=OAuth,
-        HipChatUser=HipChatUser, HipChatGroup=HipChatGroup,
+        HipChatUser=HipChatUser, HipChatGroup=HipChatGroup, HipChatRoom=HipChatRoom,
         HipChatInstallInfo=HipChatInstallInfo,
         HipChatGroupOAuth=HipChatGroupOAuth,
     )
