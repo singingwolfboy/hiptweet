@@ -21,7 +21,8 @@
       <p>You have not connected any Twitter accounts.</p>
     {% elif twitter_screen_names|length == 1 %}
       {% set screen_name = twitter_screen_names[0] %}
-      <p>You have connected the @{{ screen_name }} Twitter account.
+      <p>
+        You have connected the <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a> Twitter account.
         <form method="POST"
               action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
           <input type="submit" value="Disconnect">
@@ -31,11 +32,12 @@
       <p>You have connected the following Twitter accounts:
       <ul>
         {% for screen_name in twitter_screen_names %}
-          <li>@{{ screen_name }}
-          <form method="POST"
-              action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
-            <input type="submit" value="Disconnect">
-          </form>
+          <li>
+            <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a>
+            <form method="POST"
+                action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
+              <input type="submit" value="Disconnect">
+            </form>
           </li>
         {% endfor %}
       </ul></p>
