@@ -9,7 +9,7 @@ ui = Blueprint('ui', __name__)
 def hello():
     return "this is hiptweet"
 
-@ui.route("/configure")
+@ui.route("/configure", methods=["GET", "POST"])
 @login_required
 def configure():
     twitter_screen_names = [
