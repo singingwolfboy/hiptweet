@@ -24,8 +24,8 @@ def room_message():
     if not resp.ok:
         current_app.logger.error(resp.text)
         return jsonify({
-            # "message": "Failed to tweet :(",
-            "message": resp.text,
+            "message": "Failed to tweet :(",
+            # "message": resp.text,
             "message_format": "text",
         })
     result = resp.json()
