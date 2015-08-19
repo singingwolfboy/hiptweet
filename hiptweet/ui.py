@@ -34,6 +34,7 @@ def configure():
 @ui.route("/twitter/<screen_name>", methods=["DELETE"])
 @login_required
 def delete_twitter_oauth_token(screen_name):
+    group = current_user.hipchat_group
     oauth_models = [
         oauth for oauth in current_user.oauth_models
         if oauth.provider == "twitter"
@@ -42,6 +43,9 @@ def delete_twitter_oauth_token(screen_name):
     if not oauth_models:
         abort(404)
     for oauth_model in oauth_models:
+        if group.twitter_oauth == oauth_model:
+            group.twitter_oauth = None
+            db.session.add(group)
         db.session.delete(oauth_model)
     db.session.commit()
     return "", 204
