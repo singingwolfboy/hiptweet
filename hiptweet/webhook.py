@@ -18,7 +18,7 @@ def room_message():
     message = fields["item"]["message"]["message"]
     if message.startswith("/tweet "):
         message = message[7:]
-    resp = twitter.post("statuses/update", data={
+    resp = twitter.post("statuses/update.json", data={
         "status": message,
     })
     if not resp.ok:
