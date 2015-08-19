@@ -46,5 +46,10 @@
     <a href="{{ url_for("twitter.login") }}" target="_blank">
       Login with Twitter
     </a>
+    <form method="POST" action="{{ url_for("ui.configure") }}">
+      {{ form.hidden_tag() }}
+      {{ form.oauth.label }} {{ form.oauth(size=20) }}
+      <input type="submit" value="Submit">
+    </form>
   </body>
 </html>
