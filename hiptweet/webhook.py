@@ -1,5 +1,6 @@
 import json
-from flask import Blueprint, request, jsonify
+import logging
+from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from flask_dance.contrib.twitter import twitter
 from hiptweet import db
@@ -21,8 +22,10 @@ def room_message():
         "status": message,
     })
     if not resp.ok:
+        current_app.logger.error(resp.text)
         return jsonify({
-            "message": "Failed to tweet :(",
+            # "message": "Failed to tweet :(",
+            "message": resp.text,
             "message_format": "text",
         })
     result = resp.json()
