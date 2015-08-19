@@ -49,6 +49,14 @@ class HipChatGroupAssocationBackend(BaseBackend):
             user=user,
         )
         db.session.add(oauth_model)
+
+        # if this is the first OAuth model we're creating for the group,
+        # make it the default.
+        group = user.hipchat_group
+        if group.twitter_oauths.count() == 0:
+            group.twitter_oauth = oauth_model
+            db.session.add(group)
+
         db.session.commit()
 
     def delete(self, blueprint, user=None, user_id=None):

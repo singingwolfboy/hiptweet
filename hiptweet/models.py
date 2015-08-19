@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils import JSONType
 from flask_login import UserMixin
 from flask_dance.consumer.backend.sqla import OAuthConsumerMixin
@@ -19,6 +20,17 @@ class HipChatGroup(db.Model):
     avatar_url = db.Column(db.String(256))  # URL to group's avatar. 125px on the longest side.
     domain = db.Column(db.String(256))  # the Google Apps domain, if applicable
     subdomain = db.Column(db.String(256))  # the name used as the prefix to the HipChat domain
+
+    @hybrid_property
+    def twitter_oauths(self):
+        """
+        returns all OAuth objects associated with this group
+        """
+        return (OAuth.query
+            .join(User)
+            .join(HipChatUser)
+            .filter(HipChatUser.group_id == self.id)
+        )
 
 
 class HipChatUser(db.Model):
