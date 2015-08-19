@@ -21,6 +21,7 @@ class GroupDefaultForm(Form):
     oauth = QuerySelectField(
         'Group Default',
         query_factory=oauth_models_for_group_of_current_user,
+        default=lambda: current_user.hipchat_group.twitter_oauth,
         get_label=get_screen_name_from_oauth_model,
         allow_blank=True,
     )
