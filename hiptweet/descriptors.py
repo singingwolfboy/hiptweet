@@ -34,7 +34,7 @@ def capabilities():
                 {
                     "event": "room_message",
                     "url": url_for("webhook.room_message", _external=True),
-                    "pattern": "^/tweet",
+                    "pattern": "^/tweet ?",
                     "authentication": "jwt",
                 }
             ]

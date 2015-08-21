@@ -1,9 +1,7 @@
 import json
-import logging
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, request, jsonify, current_app, render_template
+from flask_login import login_required
 from flask_dance.contrib.twitter import twitter
-from hiptweet import db
 
 webhook = Blueprint('webhook', __name__)
 
@@ -16,18 +14,45 @@ def room_message():
     except ValueError:
         return "invalid JSON", 400
     message = fields["item"]["message"]["message"]
+    current_app.logger.warning(
+        "just testing the logging: %s",
+        message
+    )
+    if not message.startswith("/tweet"):
+        current_app.logger.warning(
+            "Received a non-tweet message: %s (ignored)",
+            message,
+        )
+        return "ignored"
+
+    if message.strip() == "/tweet":
+        # return a help message
+        screen_name = twitter.token.get("screen_name", None)
+        msg_html = render_template("bot_help_message.html", screen_name=screen_name)
+        return jsonify({
+            "message": msg_html,
+            "message_format": "html",
+        })
+
+    # chop off the tweet command
     if message.startswith("/tweet "):
         message = message[7:]
+
+    # time to actually tweet!
     resp = twitter.post("statuses/update.json", data={
         "status": message,
     })
+
     if not resp.ok:
+        # tweeting failed
         current_app.logger.error(resp.text)
         return jsonify({
-            "message": "Failed to tweet :(",
+            "message": "(failed) Failed to tweet :(",
             # "message": resp.text,
             "message_format": "text",
         })
+
+    # it worked! let's show off our new tweet
     result = resp.json()
     tweet_id = result["id"]
     screen_name = result["user"]["screen_name"]

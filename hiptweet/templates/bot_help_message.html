@@ -1,0 +1,16 @@
+Hi! I'm HipTweet, a friendly bot who can tweet for you!
+<br>
+{% if screen_name %}
+  To tweet, just send a HipChat message that starts with <pre>/tweet</pre>,
+  and I'll tweet everything after that. For example, if you type
+  <pre>/tweet Lunch was great today!</pre>, I'll tweet
+  <pre>Lunch was great today!</pre>
+  <br>
+  Right now, I'm tweeting to the
+  <a href="https://twitter.com/{{screen_name}}">@{{screen_name}}</a>
+  account on Twitter.
+{% else %}
+  Unfortunately, I haven't been connected to Twitter yet, so I can't do
+  much at the moment. Tell your HipChat administrator to hook me up,
+  so I can tweet for you!
+{% endif %}
