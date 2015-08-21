@@ -1,5 +1,6 @@
 from flask_dance.contrib.twitter import make_twitter_blueprint
 from flask_dance.consumer.backend import BaseBackend
+from flask_dance.consumer.requests import OAuth1Session
 from flask_dance.consumer import oauth_authorized, oauth_error
 from flask import flash, current_app
 from hiptweet import db
@@ -91,7 +92,7 @@ class HipChatGroupAssocationBackend(BaseBackend):
         db.session.commit()
 
 
-class RateLimitAwareSession(OAuth2Session):
+class RateLimitAwareSession(OAuth1Session):
     """
     A requests.Session subclass with a few special properties:
 
