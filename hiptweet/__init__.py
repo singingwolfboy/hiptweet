@@ -27,6 +27,8 @@ def expand_config(name):
 def configure_logger(app):
     stderr_handler = logging.StreamHandler(sys.stderr)
     stderr_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(levelname)s: %(message)s [%(name)s]')
+    stderr_handler.setFormatter(formatter)
     app.logger.addHandler(stderr_handler)
     return app
 
