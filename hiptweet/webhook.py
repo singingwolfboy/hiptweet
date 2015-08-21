@@ -52,7 +52,8 @@ def room_message():
                 reason = "Twitter has {num} errors: {errors}".format(
                     num=len(errors), errors=", ".join(errors)
                 )
-        except Exception:
+        except Exception as err:
+            current_app.logger.error(err)
             reason = "Twitter isn't cooperating. :("
         return jsonify({
             "message": "(failed) Failed to tweet. " + reason,
