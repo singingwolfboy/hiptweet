@@ -43,15 +43,7 @@ class HipChatGroupAssocationBackend(BaseBackend):
         if not user:
             user = current_user._get_current_object()
 
-        oauth_model = OAuth(
-            provider=blueprint.name,
-            token=token,
-            user=user,
-        )
-        db.session.add(oauth_model)
-
-        # if this is the first OAuth model we're creating for the group,
-        # make it the default.
+        # count the number of oauth models we currently have for this group
         group = user.hipchat_group
         num_connections = group.twitter_oauths.count()
         current_app.logger.info(
@@ -59,6 +51,16 @@ class HipChatGroupAssocationBackend(BaseBackend):
             group=group,
             num=num_connections,
         )
+
+        # make the new model
+        oauth_model = OAuth(
+            provider=blueprint.name,
+            token=token,
+            user=user,
+        )
+        db.session.add(oauth_model)
+
+        # if this is the first model for this group, make it the default
         if num_connections == 0:
             group.twitter_oauth = oauth_model
             db.session.add(group)
@@ -71,6 +73,20 @@ class HipChatGroupAssocationBackend(BaseBackend):
         oauth_model = getattr(room, attrname, None) or getattr(group, attrname, None)
         if oauth_model:
             db.session.delete(oauth_model)
+
+        # if there's only one oauth model left for this group,
+        # make it the default
+        group = user.hipchat_group
+        num_connections = group.twitter_oauths.count()
+        current_app.logger.info(
+            "num_connections for %(group)s = %(num)s",
+            group=group,
+            num=num_connections,
+        )
+        if num_connections == 1:
+            group.twitter_oauth = group.twitter_oauths.first()
+            db.session.add(group)
+
         db.session.commit()
 
 
