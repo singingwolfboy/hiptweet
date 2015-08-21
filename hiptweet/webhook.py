@@ -14,10 +14,6 @@ def room_message():
     except ValueError:
         return "invalid JSON", 400
     message = fields["item"]["message"]["message"]
-    current_app.logger.warning(
-        "just testing the logging: %s",
-        message
-    )
     if not message.startswith("/tweet"):
         current_app.logger.warning(
             "Received a non-tweet message: %s (ignored)",
@@ -46,9 +42,20 @@ def room_message():
     if not resp.ok:
         # tweeting failed
         current_app.logger.error(resp.text)
+        # try to get the error message from Twitter
+        try:
+            result = resp.json()
+            errors = [e["message"] for e in result["errors"]]
+            if len(errors) == 1:
+                reason = "Twitter says: {error}".format(error=errors[1])
+            else:
+                reason = "Twitter has {num} errors: {errors}".format(
+                    num=len(errors), errors=", ".join(errors)
+                )
+        except Exception:
+            reason = "Twitter isn't cooperating. :("
         return jsonify({
-            "message": "(failed) Failed to tweet :(",
-            # "message": resp.text,
+            "message": "(failed) Failed to tweet. " + reason,
             "message_format": "text",
         })
 
