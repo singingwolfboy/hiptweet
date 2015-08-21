@@ -54,7 +54,7 @@ class HipChatGroupAssocationBackend(BaseBackend):
         # make it the default.
         group = user.hipchat_group
         num_connections = group.twitter_oauths.count()
-        current_app.logging.info(
+        current_app.logger.info(
             "num_connections for %(group)s = %(num)s",
             group=group,
             num=num_connections,
