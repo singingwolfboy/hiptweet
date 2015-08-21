@@ -30,6 +30,12 @@ def room_message():
             "message_format": "html",
         })
 
+    if not twitter.token:
+        return jsonify({
+            "message": "(failed) I can't tweet until a HipChat admin hooks me up to a Twitter account!"
+            "message_format": "text",
+        })
+
     # chop off the tweet command
     if message.startswith("/tweet "):
         message = message[7:]
