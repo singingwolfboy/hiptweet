@@ -4,6 +4,7 @@ from flask_dance.consumer import oauth_authorized, oauth_error
 from flask import flash, current_app
 from hiptweet import db
 from hiptweet.models import User, OAuth, HipChatRoom, HipChatGroup
+from hiptweet.exceptions import RateLimited
 from flask_login import current_user
 
 
@@ -90,8 +91,34 @@ class HipChatGroupAssocationBackend(BaseBackend):
         db.session.commit()
 
 
+class RateLimitAwareSession(OAuth2Session):
+    """
+    A requests.Session subclass with a few special properties:
+
+    * base_url relative resolution (from OAuth2Session)
+    * remembers the last request it made, using the `last_response` property
+    * raises a RateLimited exception if our Github rate limit has expired
+    """
+    last_response = None
+
+    def request(self, method, url, data=None, headers=None, **kwargs):
+        resp = super(RateLimitAwareSession, self).request(
+            method=method, url=url, data=data, headers=headers, **kwargs
+        )
+        self.last_response = resp
+        rl_remaining = (
+            resp.headers.get("X-RateLimit-Remaining") or
+            resp.headers.get("X-Rate-Limit-Remaining")
+        )
+        if resp.status_code in (403, 429) and rl_remaining:
+            if int(rl_remaining) < 1:
+                raise RateLimited(response=resp)
+        return resp
+
+
 twitter_bp = make_twitter_blueprint(
     redirect_to="ui.configure",
+    session_class=RateLimitAwareSession,
     backend=HipChatGroupAssocationBackend(),
 )
 
