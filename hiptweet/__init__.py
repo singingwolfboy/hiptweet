@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
 from hiptweet.middleware import HTTPMethodOverrideMiddleware
@@ -22,6 +24,13 @@ def expand_config(name):
     return "hiptweet.config.{classname}Config".format(classname=name.capitalize())
 
 
+def configure_logger(app):
+    stderr_handler = logging.StreamHandler(sys.stderr)
+    stderr_handler.setLevel(logging.INFO)
+    app.logger.addHandler(stderr_handler)
+    return app
+
+
 def create_app(config=None):
     app = Flask(__name__)
     app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -29,6 +38,7 @@ def create_app(config=None):
     config = config or os.environ.get("HIPTWEET_CONFIG") or "default"
     app.config.from_object(expand_config(config))
 
+    configure_logger(app)
     sentry.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
