@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, url_for, request, render_template, abort, 
 from flask_login import login_required, current_user
 from hiptweet import db
 from hiptweet.forms import GroupDefaultForm
+from hiptweet.tasks import fetch_room_names
 
 ui = Blueprint('ui', __name__)
 
@@ -49,3 +50,16 @@ def delete_twitter_oauth_token(screen_name):
         db.session.delete(oauth_model)
     db.session.commit()
     return "", 204
+
+
+@ui.route("/group/<int:group_id>/rescan_rooms", methods=["POST"])
+@login_required
+def rescan_rooms(group_id):
+    if current_user.hipchat_group.id != group_id:
+        abort(401)
+    result = fetch_room_names.delay(group_id)
+    status_url = url_for("tasks.status", task_id=result.id, _external=True)
+    resp = jsonify({"message": "queued", "status_url": status_url})
+    resp.status_code = 202
+    resp.headers["Location"] = status_url
+    return resp

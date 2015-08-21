@@ -5,6 +5,7 @@ Flask-Login
 Flask-WTF
 Flask-SSLify
 Flask-Script
+celery
 raven
 blinker
 gunicorn

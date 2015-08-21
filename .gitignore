@@ -2,3 +2,4 @@
 hiptweet.db
 docs/_build
 .env
+.DS_Store
