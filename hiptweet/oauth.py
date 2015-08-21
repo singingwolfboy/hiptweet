@@ -97,7 +97,7 @@ class RateLimitAwareSession(OAuth2Session):
 
     * base_url relative resolution (from OAuth2Session)
     * remembers the last request it made, using the `last_response` property
-    * raises a RateLimited exception if our Github rate limit has expired
+    * raises a RateLimited exception if our rate limit has expired
     """
     last_response = None
 
