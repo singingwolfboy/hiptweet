@@ -9,10 +9,17 @@ from flask_dance.consumer.backend.sqla import OAuthConsumerMixin
 from hiptweet import db, login_manager
 
 
-class HipChatGroup(db.Model):
+class TimestampMixin(object):
+    """
+    Adds some basic timestamps to this model.
+    """
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+
+class HipChatGroup(db.Model, TimestampMixin):
     __tablename__ = "hipchat_group"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     twitter_oauth_id = db.Column(db.Integer, db.ForeignKey("oauth.id"))
     twitter_oauth = db.relationship("OAuth")
     # the columns below require the "view_group" scope to look up
@@ -42,10 +49,9 @@ class HipChatGroup(db.Model):
         return "<{}>".format(" ".join(parts))
 
 
-class HipChatUser(db.Model):
+class HipChatUser(db.Model, TimestampMixin):
     __tablename__ = "hipchat_user"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
     group = db.relationship(HipChatGroup, backref="users")
     # the columns below require the "view_group" scope to look up
@@ -69,10 +75,9 @@ class HipChatUser(db.Model):
         return "<{}>".format(" ".join(parts))
 
 
-class HipChatRoom(db.Model):
+class HipChatRoom(db.Model, TimestampMixin):
     __tablename__ = "hipchat_room"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
     group = db.relationship(HipChatGroup, backref="rooms")
     twitter_oauth_id = db.Column(db.Integer, db.ForeignKey("oauth.id"))
@@ -98,10 +103,9 @@ class HipChatRoom(db.Model):
         return "<{}>".format(" ".join(parts))
 
 
-class HipChatInstallInfo(db.Model):
+class HipChatInstallInfo(db.Model, TimestampMixin):
     __tablename__ = "hipchat_install_info"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
     group = db.relationship(HipChatGroup)
     room_id = db.Column(db.Integer, db.ForeignKey(HipChatRoom.id), nullable=True)
@@ -133,10 +137,9 @@ class HipChatInstallInfo(db.Model):
         return "<{}>".format(" ".join(parts))
 
 
-class HipChatGroupOAuth(db.Model):
+class HipChatGroupOAuth(db.Model, TimestampMixin):
     __tablename__ = "hipchat_group_oauth"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     install_info_id = db.Column(db.Integer,
         db.ForeignKey(HipChatInstallInfo.id, ondelete="CASCADE"),
         nullable=False,
@@ -160,10 +163,9 @@ class HipChatGroupOAuth(db.Model):
         return "<{}>".format(" ".join(parts))
 
 
-class User(db.Model, UserMixin):
+class User(db.Model, TimestampMixin, UserMixin):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     hipchat_user_id = db.Column(
         db.Integer, db.ForeignKey(HipChatUser.id), nullable=False, index=True,
     )
