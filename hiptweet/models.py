@@ -32,6 +32,15 @@ class HipChatGroup(db.Model):
             .filter(HipChatUser.group_id == self.id)
         )
 
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        if self.name:
+            parts.append('name="{}"'.format(self.name))
+        if self.id:
+            parts.append("id={}".format(self.id))
+        return "<{}>".format(" ".join(parts))
+
 
 class HipChatUser(db.Model):
     __tablename__ = "hipchat_user"
@@ -49,6 +58,15 @@ class HipChatUser(db.Model):
     mention_name = db.Column(db.String(256))
     timezone = db.Column(db.String(64))
     xmpp_jid = db.Column(db.String(256))  # XMPP/Jabber ID of the user.
+
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        if self.name:
+            parts.append('name="{}"'.format(self.name))
+        if self.id:
+            parts.append("id={}".format(self.id))
+        return "<{}>".format(" ".join(parts))
 
 
 class HipChatRoom(db.Model):
@@ -70,6 +88,15 @@ class HipChatRoom(db.Model):
     owner = db.relationship(HipChatUser, backref="owned_rooms")
     xmpp_jid = db.Column(db.String(256))  # XMPP/Jabber ID of the room.
 
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        if self.name:
+            parts.append('name="{}"'.format(self.name))
+        if self.id:
+            parts.append("id={}".format(self.id))
+        return "<{}>".format(" ".join(parts))
+
 
 class HipChatInstallInfo(db.Model):
     __tablename__ = "hipchat_install_info"
@@ -88,6 +115,22 @@ class HipChatInstallInfo(db.Model):
         # unless they are for different rooms in the group
         db.UniqueConstraint(group_id, room_id),
     )
+
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        if self.group.name:
+            parts.append('group="{}"'.format(self.group.name))
+        else:
+            parts.append('group_id={}'.format(self.group.id))
+        if self.room_id:
+            if self.room.name:
+                parts.append('room="{}"'.format(self.room.name))
+            else:
+                parts.append('room_id={}'.format(self.room.id))
+        if self.oauth_id:
+            parts.append("oauth_id={}".format(self.oauth_id))
+        return "<{}>".format(" ".join(parts))
 
 
 class HipChatGroupOAuth(db.Model):
@@ -110,6 +153,12 @@ class HipChatGroupOAuth(db.Model):
             .first()
         )
 
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        parts.append(repr(self.install_info))
+        return "<{}>".format(" ".join(parts))
+
 
 class User(db.Model, UserMixin):
     __tablename__ = "user"
@@ -122,6 +171,17 @@ class User(db.Model, UserMixin):
         HipChatUser, backref=backref("user", uselist=False),
     )
     hipchat_group = association_proxy("hipchat_user", "group")
+
+    def __repr__(self):
+        parts = []
+        parts.append(self.__class__.__name__)
+        if self.hipchat_user.name:
+            parts.append('name="{}"'.format(self.hipchat_user.name))
+        else:
+            parts.append('hichat_user_id={}'.format(self.hipchat_user.id))
+        if self.id:
+            parts.append("id={}".format(self.id))
+        return "<{}>".format(" ".join(parts))
 
 
 @login_manager.user_loader

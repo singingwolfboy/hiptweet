@@ -1,7 +1,7 @@
 from flask_dance.contrib.twitter import make_twitter_blueprint
 from flask_dance.consumer.backend import BaseBackend
-from flask_dance.consumer import oauth_error
-from flask import flash
+from flask_dance.consumer import oauth_authorized, oauth_error
+from flask import flash, current_app
 from hiptweet import db
 from hiptweet.models import User, OAuth, HipChatRoom, HipChatGroup
 from flask_login import current_user
@@ -53,7 +53,13 @@ class HipChatGroupAssocationBackend(BaseBackend):
         # if this is the first OAuth model we're creating for the group,
         # make it the default.
         group = user.hipchat_group
-        if group.twitter_oauths.count() == 0:
+        num_connections = group.twitter_oauths.count()
+        current_app.logging.info(
+            "num_connections for %(group)s = %(num)s",
+            group=group,
+            num=num_connections,
+        )
+        if num_connections == 0:
             group.twitter_oauth = oauth_model
             db.session.add(group)
 
@@ -73,8 +79,14 @@ twitter_bp = make_twitter_blueprint(
     backend=HipChatGroupAssocationBackend(),
 )
 
+
+@oauth_authorized.connect_via(twitter_bp)
+def twitter_authorized(blueprint, token):
+
+
 # notify on OAuth provider error
 @oauth_error.connect_via(twitter_bp)
 def twitter_error(blueprint, response):
     msg = "Failed to authenticate with Twitter."
     flash(msg, category="error")
+

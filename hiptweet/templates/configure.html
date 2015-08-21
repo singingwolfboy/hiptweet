@@ -1,3 +1,4 @@
+{% import 'forms.html' as forms %}
 <!doctype html>
 <html>
   <head>
@@ -5,6 +6,7 @@
     <link rel="stylesheet" href="https://www.hipchat.com/atlassian-connect/all{% if config.DEBUG %}-debug{% endif %}.css">
   </head>
   <body>
+    <h1>HipTweet Configuration</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <ul class="flash">
@@ -15,41 +17,81 @@
       {% endif %}
     {% endwith %}
 
-    <p>You are HipChat user #{{ current_user.hipchat_user.id }} in HipChat group #{{ current_user.hipchat_group.id }}</p>
-
     {% if not twitter_screen_names %}
-      <p>You have not connected any Twitter accounts.</p>
+      <p>
+        In order to use HipTweet, you must connect one or more Twitter accounts.
+        If you connect more than one Twitter account, you can make different
+        HipChat rooms tweet to different Twitter accounts.
+      </p>
+
+      <a href="{{ url_for("twitter.login") }}" target="_blank">
+        Connect a Twitter account
+      </a>
+
     {% elif twitter_screen_names|length == 1 %}
+
       {% set screen_name = twitter_screen_names[0] %}
       <p>
-        You have connected the <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a> Twitter account.
-        <form method="POST"
-              action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
-          <input type="submit" value="Disconnect">
-        </form>
+        HipTweet is all set up to tweet from the
+        <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a>
+        Twitter account. Awesome!
       </p>
+      <p>
+        If you want, you can connect more Twitter accounts to HipTweet.
+        If you do, you can make different HipChat rooms tweet to different
+        Twitter accounts.
+      </p>
+      <a href="{{ url_for("twitter.login") }}" target="_blank">
+        Connect another Twitter account
+      </a>
+      <p>
+        Or, you can disconnect the
+        <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a>
+        Twitter account from HipTweet. If you do this, HipTweet will be
+        unable to tweet.
+      </p>
+      <form method="POST"
+            action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
+        <input type="submit" value="Disconnect">
+      </form>
+
     {% else %}
-      <p>You have connected the following Twitter accounts:
+
+      <p>
+        HipTweet is connected to multiple Twitter accounts. In the future,
+        you will be able to make different HipChat rooms tweet to different
+        Twitter accounts. However, that feature is not working yet.
+      </p>
+      <p>
+        You have connected the following Twitter accounts:
+      </p>
       <ul>
-        {% for screen_name in twitter_screen_names %}
-          <li>
-            <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a>
-            <form method="POST"
-                action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
-              <input type="submit" value="Disconnect">
-            </form>
-          </li>
-        {% endfor %}
-      </ul></p>
+      {% for screen_name in twitter_screen_names %}
+        <li>
+          <a href="https://twitter.com/{{ screen_name }}">@{{ screen_name }}</a>
+          <form method="POST"
+              action="{{ url_for("ui.delete_twitter_oauth_token", screen_name=screen_name) }}?_method=DELETE">
+            <input type="submit" value="Disconnect">
+          </form>
+        </li>
+      {% endfor %}
+        <li>
+          <a href="{{ url_for("twitter.login") }}" target="_blank">
+            Connect another Twitter account
+          </a>
+        </li>
+      </ul>
+
+      <p>
+        You must select which Twitter account you want HipTweet to use.
+      </p>
+      <form method="POST" action="{{ url_for("ui.configure") }}">
+        {{ form.hidden_tag() }}
+        {{ forms.with_errors(form.oauth) }}
+        <input type="submit" value="Select Twitter Account">
+      </form>
+
     {% endif %}
-    <br>
-    <a href="{{ url_for("twitter.login") }}" target="_blank">
-      Login with Twitter
-    </a>
-    <form method="POST" action="{{ url_for("ui.configure") }}">
-      {{ form.hidden_tag() }}
-      {{ form.oauth.label }} {{ form.oauth(size=5) }}
-      <input type="submit" value="Submit">
-    </form>
+
   </body>
 </html>
