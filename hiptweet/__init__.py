@@ -5,7 +5,9 @@ from flask import Flask
 from werkzeug.contrib.fixers import ProxyFix
 from hiptweet.middleware import HTTPMethodOverrideMiddleware
 from raven.contrib.flask import Sentry
+from raven.contrib.celery import register_signal, register_logger_signal
 from flask_sqlalchemy import SQLAlchemy
+from celery import Celery
 from flask_login import LoginManager
 from flask_sslify import SSLify
 
@@ -15,6 +17,7 @@ HIPCHAT_SCOPES = ["send_notification"]
 
 sentry = Sentry()
 db = SQLAlchemy()
+celery = Celery()
 login_manager = LoginManager()
 
 
@@ -31,6 +34,26 @@ def configure_logger(app):
     stderr_handler.setFormatter(formatter)
     app.logger.addHandler(stderr_handler)
     return app
+
+
+def create_celery_app(app=None, config="worker"):
+    """
+    adapted from http://flask.pocoo.org/docs/0.10/patterns/celery/
+    """
+    app = app or create_app(config=config)
+    celery.main = app.import_name
+    celery.conf["BROKER_URL"] = app.config["CELERY_BROKER_URL"]
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+    class ContextTask(TaskBase):
+        abstract = True
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    celery.Task = ContextTask
+    register_logger_signal(sentry.client)
+    register_signal(sentry.client)
+    return celery
 
 
 def create_app(config=None):

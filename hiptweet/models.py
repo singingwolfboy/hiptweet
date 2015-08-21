@@ -3,6 +3,7 @@ from sqlalchemy.orm import backref
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy_utils import JSONType
 from flask_login import UserMixin
 from flask_dance.consumer.backend.sqla import OAuthConsumerMixin
@@ -107,12 +108,13 @@ class HipChatInstallInfo(db.Model, TimestampMixin):
     __tablename__ = "hipchat_install_info"
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
-    group = db.relationship(HipChatGroup)
+    group = db.relationship(HipChatGroup, backref="install_info")
     room_id = db.Column(db.Integer, db.ForeignKey(HipChatRoom.id), nullable=True)
     room = db.relationship(HipChatRoom)
     capabilities_url = db.Column(db.String(512))
     oauth_id = db.Column(db.String(256), nullable=False, index=True)
     oauth_secret = db.Column(db.String(256), nullable=False)
+    tokens = association_proxy("oauth_models", "token")
 
     __table_args__ = (
         # can't have multiple install infos for the same group,
@@ -133,7 +135,7 @@ class HipChatInstallInfo(db.Model, TimestampMixin):
             else:
                 parts.append('room_id={}'.format(self.room.id))
         if self.oauth_id:
-            parts.append("oauth_id={}".format(self.oauth_id))
+            parts.append('oauth_id="{}"'.format(self.oauth_id))
         return "<{}>".format(" ".join(parts))
 
 
@@ -144,7 +146,7 @@ class HipChatGroupOAuth(db.Model, TimestampMixin):
         db.ForeignKey(HipChatInstallInfo.id, ondelete="CASCADE"),
         nullable=False,
     )
-    install_info = db.relationship(HipChatInstallInfo)
+    install_info = db.relationship(HipChatInstallInfo, backref="oauth_models")
     token = db.Column(MutableDict.as_mutable(JSONType))
 
     @classmethod
