@@ -47,7 +47,7 @@ def room_message():
             result = resp.json()
             errors = [e["message"] for e in result["errors"]]
             if len(errors) == 1:
-                reason = "Twitter says: {error}".format(error=errors[1])
+                reason = "Twitter says: {error}".format(error=errors[0])
             else:
                 reason = "Twitter has {num} errors: {errors}".format(
                     num=len(errors), errors=", ".join(errors)
