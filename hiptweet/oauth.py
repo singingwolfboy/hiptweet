@@ -82,6 +82,7 @@ twitter_bp = make_twitter_blueprint(
 
 @oauth_authorized.connect_via(twitter_bp)
 def twitter_authorized(blueprint, token):
+    pass
 
 
 # notify on OAuth provider error
