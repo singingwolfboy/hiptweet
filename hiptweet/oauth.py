@@ -25,7 +25,7 @@ class HipChatGroupAssocationBackend(BaseBackend):
             if group_id:
                 group = HipChatGroup.query.get(group_id)
         # if we still haven't found a group, use the group of the logged in user
-        if not group:
+        if not group and current_user.is_authenticated():
             group = current_user.hipchat_group
 
         return None, group
