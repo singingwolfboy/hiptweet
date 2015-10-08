@@ -42,8 +42,14 @@ def paginated_get(url, session=None, **kwargs):
 @celery.task
 def fetch_room_names(group_id):
     group = HipChatGroup.query.get(group_id)
+    capabilities_url = group.install_info.capabilities_url
+    capabilities_resp = requests.get(capabilities_url)
+    capabilities_resp.raise_for_status()
+    base_api_url = (
+        capabilities_resp.json()["capabilities"]["hipchatApiProvider"]["url"]
+    )
     session = OAuth2Session(token=group.twitter_oauth.token)
-    rooms_info = paginated_get("/v2/rooms", session=session)
+    rooms_info = paginated_get(base_api_url + "room", session=session)
     for room_info in rooms_info:
         room_id = room_info['id']
         room = HipChatRoom.query.get(room_id)
