@@ -1,5 +1,6 @@
 import logging
 import requests
+from flask import Blueprint, jsonify
 from requests_oauthlib import OAuth2Session
 from hiptweet import celery
 from hiptweet.models import HipChatGroup, HipChatRoom
