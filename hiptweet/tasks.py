@@ -42,7 +42,7 @@ def paginated_get(url, session=None, **kwargs):
 @celery.task
 def fetch_room_names(group_id):
     group = HipChatGroup.query.get(group_id)
-    capabilities_url = group.install_info.capabilities_url
+    capabilities_url = group.install_info[0].capabilities_url
     capabilities_resp = requests.get(capabilities_url)
     capabilities_resp.raise_for_status()
     base_api_url = (
