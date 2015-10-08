@@ -10,3 +10,4 @@ raven
 blinker
 gunicorn
 psycopg2
+redis
