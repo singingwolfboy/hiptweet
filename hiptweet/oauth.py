@@ -9,7 +9,7 @@ from hiptweet.exceptions import RateLimited
 from flask_login import current_user
 
 
-class HipChatGroupAssocationBackend(BaseBackend):
+class HipChatGroupAssociationBackend(BaseBackend):
     def _get_room_and_group(self, blueprint):
         room = blueprint.config.get("room")
         if not room:
@@ -120,7 +120,7 @@ class RateLimitAwareSession(OAuth1Session):
 twitter_bp = make_twitter_blueprint(
     redirect_to="ui.configure",
     session_class=RateLimitAwareSession,
-    backend=HipChatGroupAssocationBackend(),
+    backend=HipChatGroupAssociationBackend(),
 )
 
 
