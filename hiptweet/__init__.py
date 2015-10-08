@@ -67,6 +67,7 @@ def create_app(config=None):
     sentry.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
+    create_celery_app(app)
     if not app.debug:
         SSLify(app)
 
