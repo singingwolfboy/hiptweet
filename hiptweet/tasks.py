@@ -1,7 +1,7 @@
 import logging
 import requests
 from flask import Blueprint, jsonify
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 from hiptweet import celery
 from hiptweet.models import HipChatGroup, HipChatRoom
 from celery.utils.log import get_task_logger
@@ -54,13 +54,7 @@ def fetch_room_names(self, group_id):
         capabilities_resp.json()["capabilities"]["hipchatApiProvider"]["url"]
     )
     rooms_info_url = base_api_url + "room"
-    twitter_token = group.twitter_oauth.token
-    session = OAuth1Session(
-        client_key=install_info.oauth_id,
-        client_secret=install_info.oauth_secret,
-        resource_owner_key=twitter_token['oauth_token'],
-        resource_owner_secret=twitter_token['oauth_token_secret'],
-    )
+    session = OAuth2Session(token=install_info.oauth_models[0].token)
 
     def update_state(resp):
         if not resp.ok:
