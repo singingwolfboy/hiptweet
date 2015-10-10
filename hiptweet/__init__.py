@@ -12,7 +12,7 @@ from flask_login import LoginManager
 from flask_sslify import SSLify
 
 
-HIPCHAT_SCOPES = ["send_notification"]
+HIPCHAT_SCOPES = ["send_notification", "view_group"]
 
 
 sentry = Sentry()
