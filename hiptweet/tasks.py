@@ -16,10 +16,13 @@ tasks = Blueprint('tasks', __name__)
 @tasks.route('/status/<task_id>')
 def status(task_id):
     result = celery.AsyncResult(task_id)
-    return jsonify({"status": result.state})
+    return jsonify({
+        "state": result.state,
+        "info": result.info,
+    })
 
 
-def paginated_get(url, session=None, **kwargs):
+def paginated_get(url, session=None, callback=None, **kwargs):
     """
     Return a generator of results for this API call, based on the structure
     of HipChat's API return values.
@@ -32,6 +35,8 @@ def paginated_get(url, session=None, **kwargs):
     payload.update(kwargs)
     while url:
         resp = session.get(url, params=payload)
+        if callable(callback):
+            callback(resp)
         resp.raise_for_status()
         result = resp.json()
         for item in result["items"]:
@@ -39,8 +44,8 @@ def paginated_get(url, session=None, **kwargs):
         url = result.get("links", {}).get("next", "")
 
 
-@celery.task
-def fetch_room_names(group_id):
+@celery.task(bind=True)
+def fetch_room_names(self, group_id):
     group = HipChatGroup.query.get(group_id)
     capabilities_url = group.install_info[0].capabilities_url
     capabilities_resp = requests.get(capabilities_url)
@@ -48,8 +53,16 @@ def fetch_room_names(group_id):
     base_api_url = (
         capabilities_resp.json()["capabilities"]["hipchatApiProvider"]["url"]
     )
+    rooms_info_url = base_api_url + "room"
     session = OAuth2Session(token=group.twitter_oauth.token)
-    rooms_info = paginated_get(base_api_url + "room", session=session)
+
+    def update_state(resp):
+        if not resp.ok:
+            return
+        start_index = resp.json()["startIndex"]
+        self.update_state(state="STARTED", meta={"startIndex": start_index})
+
+    rooms_info = paginated_get(rooms_info_url, session=session, callback=update_state)
     for room_info in rooms_info:
         room_id = room_info['id']
         room = HipChatRoom.query.get(room_id)
