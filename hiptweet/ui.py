@@ -52,12 +52,11 @@ def delete_twitter_oauth_token(screen_name):
     return "", 204
 
 
-# @ui.route("/group/<int:group_id>/rescan_rooms", methods=["POST"])
-@ui.route("/rescan_rooms", methods=["GET"])
+@ui.route("/group/<int:group_id>/rescan_rooms", methods=["POST"])
 @login_required
-def rescan_rooms():
-    # if current_user.hipchat_group.id != group_id:
-    #     abort(401)
+def rescan_rooms(group_id):
+    if current_user.hipchat_group.id != group_id:
+        abort(401)
     result = fetch_room_names.delay(current_user.hipchat_group.id)
     status_url = url_for("tasks.status", task_id=result.id, _external=True)
     resp = jsonify({"message": "queued", "status_url": status_url})

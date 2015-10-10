@@ -93,5 +93,10 @@
 
     {% endif %}
 
+    <form method="POST"
+        action="{{ url_for("ui.rescan_rooms", group_id=current_user.group_id) }}">
+      <input type="submit" value="Rescan rooms">
+    </form>
+
   </body>
 </html>
