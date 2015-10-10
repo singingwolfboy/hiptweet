@@ -146,7 +146,11 @@ class HipChatGroupOAuth(db.Model, TimestampMixin):
         db.ForeignKey(HipChatInstallInfo.id, ondelete="CASCADE"),
         nullable=False,
     )
-    install_info = db.relationship(HipChatInstallInfo, backref="oauth_models")
+    install_info = db.relationship(
+        HipChatInstallInfo,
+        cascade="all, delete-orphan",
+        backref="oauth_models"
+    )
     token = db.Column(MutableDict.as_mutable(JSONType))
 
     @classmethod
