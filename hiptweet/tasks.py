@@ -1,7 +1,7 @@
 import logging
 import requests
 from flask import Blueprint, jsonify
-from requests_oauthlib import OAuth2Session
+from requests_oauthlib import OAuth1Session
 from hiptweet import celery
 from hiptweet.models import HipChatGroup, HipChatRoom
 from celery.utils.log import get_task_logger
@@ -47,14 +47,20 @@ def paginated_get(url, session=None, callback=None, **kwargs):
 @celery.task(bind=True)
 def fetch_room_names(self, group_id):
     group = HipChatGroup.query.get(group_id)
-    capabilities_url = group.install_info[0].capabilities_url
-    capabilities_resp = requests.get(capabilities_url)
+    install_info = group.install_info[0]
+    capabilities_resp = requests.get(install_info.capabilities_url)
     capabilities_resp.raise_for_status()
     base_api_url = (
         capabilities_resp.json()["capabilities"]["hipchatApiProvider"]["url"]
     )
     rooms_info_url = base_api_url + "room"
-    session = OAuth2Session(token=group.twitter_oauth.token)
+    twitter_token = group.twitter_oauth.token
+    session = OAuth1Session(
+        client_key=install_info.oauth_id,
+        client_secret=install_info.oauth_secret,
+        resource_owner_key=twitter_token['oauth_token'],
+        resource_owner_secret=twitter_token['oauth_token_secret'],
+    )
 
     def update_state(resp):
         if not resp.ok:
