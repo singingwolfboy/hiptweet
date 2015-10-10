@@ -156,6 +156,7 @@ class HipChatGroupOAuth(db.Model, TimestampMixin):
     install_info = db.relationship(
         HipChatInstallInfo,
         cascade="all, delete-orphan",
+        single_parent=True,
         backref="oauth_models"
     )
     token = db.Column(MutableDict.as_mutable(JSONType))
