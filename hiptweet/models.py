@@ -21,7 +21,10 @@ class TimestampMixin(object):
 class HipChatGroup(db.Model, TimestampMixin):
     __tablename__ = "hipchat_group"
     id = db.Column(db.Integer, primary_key=True)
-    twitter_oauth_id = db.Column(db.Integer, db.ForeignKey("oauth.id"))
+    twitter_oauth_id = db.Column(
+        db.Integer,
+        db.ForeignKey("oauth.id", name="FK_HIPCHATGROUP_OAUTH"),
+    )
     twitter_oauth = db.relationship("OAuth")
     # the columns below require the "view_group" scope to look up
     name = db.Column(db.String(256))
@@ -53,7 +56,11 @@ class HipChatGroup(db.Model, TimestampMixin):
 class HipChatUser(db.Model, TimestampMixin):
     __tablename__ = "hipchat_user"
     id = db.Column(db.Integer, primary_key=True)
-    group_id = db.Column(db.Integer, db.ForeignKey(HipChatGroup.id), nullable=False)
+    group_id = db.Column(
+        db.Integer,
+        db.ForeignKey(HipChatGroup.id, name="FK_HIPCHATUSER_HIPCHATGROUP"),
+        nullable=False,
+    )
     group = db.relationship(HipChatGroup, backref="users")
     # the columns below require the "view_group" scope to look up
     name = db.Column(db.String(256))
@@ -173,7 +180,10 @@ class User(db.Model, TimestampMixin, UserMixin):
     __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     hipchat_user_id = db.Column(
-        db.Integer, db.ForeignKey(HipChatUser.id), nullable=False, index=True,
+        db.Integer,
+        db.ForeignKey(HipChatUser.id, name="FK_USER_HIPCHATUSER"),
+        nullable=False,
+        index=True,
     )
     hipchat_user = db.relationship(
         HipChatUser, backref=backref("user", uselist=False),
@@ -199,6 +209,9 @@ def load_user(userid):
 
 class OAuth(db.Model, OAuthConsumerMixin):
     __tablename__ = "oauth"
-    user_id = db.Column(db.Integer, db.ForeignKey(User.id))
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey(User.id, name="FK_OAUTH_USER"),
+    )
     user = db.relationship(User, backref="oauth_models")
 
